@@ -1,6 +1,6 @@
 <template>
 	<view class="index">
-		<musichead title="网易云音乐" :icon="false"></musichead>
+		<musichead title="小何云音乐" :icon="false"></musichead>
 		<view class="container">
 			<scroll-view scroll-y="true">
 				<view class="index-search">
@@ -8,15 +8,13 @@
 					<input type="text" placeholder="搜索歌曲" />
 				</view>
 				<view class="index-list">
-					<view class="index-list-item">
+					<view class="index-list-item" v-for="(item,index) in topList" :key="index">
 						<view class="index-list-img">
-							<image src="../../static/logo.png" mode=""></image>
-							<text>每天更新</text>
+							<image :src="item.coverImgUrl" mode=""></image>
+							<text>{{item.updateFrequency}}</text>
 						</view>
-						<view class="index-list-text">
-							<view>1.与我无关 - 阿冗</view>
-							<view>1.与我无关 - 阿冗</view>
-							<view>1.与我无关 - 阿冗</view>
+						<view class="index-list-text" >
+							<view v-for="(item,index) in item.tracks" :key="index">{{index+1}}.{{item.first}}-{{item.second}}</view>
 						</view>
 					</view>
 				</view>
@@ -27,14 +25,23 @@
 
 <script>
 import musichead from '@/components/musichead/musichead.vue'
+import {topList} from '@/common/api.js'
 export default {
 	data() {
-		return {}
+		return {
+			topList:[]
+		}
 	},
 	components: {
 		musichead
 	},
-	onLoad() {},
+	onLoad() {
+		topList().then(res =>{
+			if(res.length){
+				this.topList = res
+			}
+		})
+	},
 	methods: {}
 }
 </script>
@@ -73,6 +80,7 @@ export default {
 			 image {
 				width: 100%;
 				height: 100%;
+				border-radius: 25rpx;
 			}
 			text {
 				position: absolute;
@@ -83,8 +91,8 @@ export default {
 			}
 		}
 		.index-list-text {
-			font-size: 24rpx;
-			line-height: 54rpx;
+			font-size: 22rpx;
+			line-height:56rpx;
 		}
 	}
 }
