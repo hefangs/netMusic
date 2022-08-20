@@ -1,6 +1,6 @@
 <template>
 	<view class="index">
-		<musichead title="小何云音乐" :icon="false"></musichead>
+		<musichead title="小何云音乐" :icon="false" class="top" color="black"></musichead>
 		<view class="container">
 			<scroll-view scroll-y="true">
 				<view class="index-search">
@@ -8,13 +8,13 @@
 					<input type="text" placeholder="搜索歌曲" />
 				</view>
 				<view class="index-list">
-					<view class="index-list-item" v-for="(item,index) in topList" :key="index">
+					<view class="index-list-item" v-for="(item, index) in topList" :key="index" @tap="handleToList(item.listId)">
 						<view class="index-list-img">
 							<image :src="item.coverImgUrl" mode=""></image>
-							<text>{{item.updateFrequency}}</text>
+							<text>{{ item.updateFrequency }}</text>
 						</view>
-						<view class="index-list-text" >
-							<view v-for="(item,index) in item.tracks" :key="index">{{index+1}}.{{item.first}}-{{item.second}}</view>
+						<view class="index-list-text">
+							<view class="vie" v-for="(item, index) in item.tracks" :key="index">{{ index + 1 }}.{{ item.first }}-{{ item.second }}</view>
 						</view>
 					</view>
 				</view>
@@ -25,28 +25,39 @@
 
 <script>
 import musichead from '@/components/musichead/musichead.vue'
-import {topList} from '@/common/api.js'
+import { topList } from '@/common/api.js'
 export default {
 	data() {
 		return {
-			topList:[]
+			topList: []
 		}
 	},
 	components: {
 		musichead
 	},
 	onLoad() {
-		topList().then(res =>{
-			if(res.length){
+		topList().then(res => {
+			if (res.length) {
 				this.topList = res
 			}
 		})
 	},
-	methods: {}
+	methods: {
+		handleToList(listId) {
+			// console.log(listId)
+			uni.navigateTo({
+				url: '/pages/list/list?listId=' + listId
+			})
+		}
+	}
 }
 </script>
 
 <style scoped lang="scss">
+.top {
+	margin-top: 30rpx;
+	font-size: 35rpx;
+}
 .index {
 }
 .index-search {
@@ -73,11 +84,11 @@ export default {
 		display: flex;
 		margin: 20rpx;
 		.index-list-img {
-			width: 150rpx;
-			height: 150rpx;
+			width: 200rpx;
+			height: 200rpx;
 			position: relative;
 			margin-right: 20rpx;
-			 image {
+			image {
 				width: 100%;
 				height: 100%;
 				border-radius: 25rpx;
@@ -91,13 +102,20 @@ export default {
 			}
 		}
 		.index-list-text {
-			font-size: 22rpx;
-			line-height:56rpx;
+			line-height: 56rpx;
+			overflow: hidden;
+			white-space: normal;
+			text-overflow: ellipsis;
+			.vie {
+				width: 400rpx;
+				color: #607EAA;
+				font-size: 28rpx;
+				margin-top: 13rpx;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
 		}
 	}
 }
-
-
-
-
 </style>

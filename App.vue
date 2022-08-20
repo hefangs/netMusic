@@ -15,5 +15,17 @@
 	.container scroll-view{
 		height: 100%;
 	}
-	
+	.fixbg{
+		width: 100vh;
+		height: 100vh;
+		position: fixed;
+		left: 0;
+		top: 0;
+		/* background-image: url('@/static/netlog.webp'); */
+		background-size: cover;
+		background-position:100% 100%;
+		filter: blur(20rpx);
+		transform:scale(1.2) ;
+		
+	}
 </style>

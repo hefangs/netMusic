@@ -1,6 +1,6 @@
 <template>
-	<view class="music-head">
-		<view v-if="icon" class="music-head-icon">
+	<view class="music-head" :style="{color:color}">
+		<view v-if="icon" class="music-head-icon" >
 			<text class="iconfont icon-fanhuijiantou" @tap="handleToBack"></text>
 			<text class="iconfont icon-home" @tap="handleToHome"></text>
 		</view>
@@ -17,14 +17,14 @@
 				
 			}
 		},
-		props:['title','icon'],
+		props:['title','icon','color'],
 		methods: {
 			handleToBack(){
 				uni.navigateBack()
 			},
 			handleToHome(){
 				uni.navigateTo({
-					url:'//pages/index/index'
+					url:'/pages/index/index'
 				})
 			}
 		}
@@ -33,6 +33,7 @@
 
 <style scoped lang="scss">
 	.music-head{ 
+		margin-bottom: 20rpx;
 		width: 100%;
 		height: 75px;
 		line-height:80px;
