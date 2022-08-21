@@ -1,7 +1,7 @@
 <template>
 	<view class="list">
 		<view class="fixbg" :style="{'background-image':`url(${playList.coverImgUrl})`}"></view>
-		<musichead title="歌单" :icon="true" class="top" color="black"></musichead>
+		<musichead title="歌单" :icon="true" class="top"></musichead>
 		<view class="container" v-show="!isLoading">
 			<scroll-view scroll-y="true">
 				<view class="list-head">
@@ -29,7 +29,7 @@
 						<text>播放全部</text>
 						<text>(共{{playList.trackCount}}首)</text>
 					</view>
-					<view class="list-music-item" v-for="(item,index) in playList.tracks" :key="index">
+					<view class="list-music-item" @tap="handleToDetail(item.id)" v-for="(item,index) in playList.tracks" :key="index">
 						<view class="list-music-top">{{index + 1 }}</view>
 						<view class="list-music-song">
 							<view>{{item.name}}</view>
@@ -86,7 +86,13 @@ export default {
 	components: {
 		musichead
 	},
-	methods: {}
+	methods: {
+		handleToDetail(id){
+			uni.navigateTo({
+				url:'/pages/detail/detail?id=' + id,
+			})
+		}
+	}
 }
 </script>
 

@@ -54,10 +54,7 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.top {
-	margin-top: 30rpx;
-	font-size: 35rpx;
-}
+
 .index {
 }
 .index-search {
