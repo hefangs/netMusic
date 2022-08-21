@@ -28,4 +28,8 @@
 		transform:scale(1.2) ;
 		
 	}
+	.top {
+		margin-top: 30rpx;
+		font-size: 35rpx;
+	}
 </style>
