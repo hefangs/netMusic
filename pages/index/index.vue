@@ -7,7 +7,20 @@
 					<text class="iconfont icon-search1"></text>
 					<input type="text" placeholder="搜索歌曲" />
 				</view>
-				<view class="index-list">
+				<view v-if="isLoading">
+				<m-for-skeleton
+					:avatarSize="200"
+					        :row="3"
+					        :loading="isLoading"
+					        isarc='square'
+					        v-for="(item,key) in 4"
+									:titleStyle = "{}"
+									:title = "false"
+					        :key="key">
+        </m-for-skeleton>
+					
+				</view>
+				<view class="index-list" v-else>
 					<view class="index-list-item" v-for="(item, index) in topList" :key="index" @tap="handleToList(item.listId)">
 						<view class="index-list-img">
 							<image :src="item.coverImgUrl" mode=""></image>
@@ -25,20 +38,25 @@
 
 <script>
 import musichead from '@/components/musichead/musichead.vue'
+import mForSkeleton from "@/components/m-for-skeleton/m-for-skeleton"
 import { topList } from '@/common/api.js'
 export default {
 	data() {
 		return {
-			topList: []
+			topList: [],
+			isLoading:true
 		}
 	},
 	components: {
-		musichead
+		musichead,mForSkeleton
 	},
 	onLoad() {
 		topList().then(res => {
 			if (res.length) {
-				this.topList = res
+				
+					this.topList = res
+					this.isLoading = false
+
 			}
 		})
 	},
