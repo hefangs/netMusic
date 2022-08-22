@@ -75,3 +75,29 @@ export function songUrl(id){
 		method:'GET'
 	})
 }
+// 获取热门搜索列表
+// http://localhost:3000/search/hot/detail
+export function searchHot(){
+	return uni.request({
+		url:`${baseUrl}/search/hot/detail`,
+		method:'GET'
+	})
+}
+
+// 传入搜索关键词-搜索
+// http://localhost:3000/search?keywords=abc
+export function searchWord(keyword){
+	return uni.request({
+		url:`${baseUrl}/search?keywords=${keyword}`,
+		method:'GET'
+	})
+}
+
+// 可获得搜索建议,搜索结果同时包含单曲,歌手,歌单信息
+// http://localhost:3000/search/suggest?keywords=abc&type=mobile
+export function searchSuggest(keyword){
+	return uni.request({
+		url:`${baseUrl}/search/suggest?keywords=${keyword}&type=mobile`,
+		method:'GET'
+	})
+}
