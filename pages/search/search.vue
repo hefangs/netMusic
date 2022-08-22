@@ -5,9 +5,11 @@
 			<scroll-view scroll-y="true">
 				<view class="search-search">
 					<text class="iconfont icon-search1"></text>
-					<input type="text" placeholder="搜索歌曲" v-model="searchWord" @confirm="handleToSearch(searchWord)"/>
-					<text class="iconfont icon-guanbi"></text>
+					<input type="text" placeholder="搜索歌曲" v-model="searchWord" @confirm="handleToSearch(searchWord)" @input="handleToSuggest"/>
+					<text class="iconfont icon-guanbi" v-show="searchType !==1" @tap="handleToClose"></text>
 				</view>
+				<block v-if="searchType == 1">
+
 				<view class="search-history">
 					<view class="search-history-head">
 						<text>历史记录</text>
@@ -30,6 +32,26 @@
 						<view class="search-hot-count">{{item.score}}</view>
 					</view>
 				</view>
+				</block>
+				<block v-else-if="searchType ==2">
+					<view class="search-result">
+						<view class="search-result-item" v-for="(item,index) in searchList" :key="index" @tap="handleToDetail(item.id)">
+							<view class="search-result-word">
+								<view>{{item.name}}</view>
+								<view>{{item.artists[0].name}}-{{item.album.name }}</view>
+							</view>
+							<text class="iconfont icon-iconfontplay2"></text>
+						</view>
+					</view>
+				</block>
+				<block v-else-if="searchType ==3">
+					<view class="search-suggest">
+						<view class="search-suggest-head">{{searchWord}}</view>
+						<view class="search-suggest-item" v-for="(item,index) in searchSuggest" :key="index" @tap="handleToWord(item.keyword)">
+							<text class="iconfont icon-search1">{{item.keyword}}</text>
+						</view>
+					</view>
+				</block>
 			</scroll-view>
 		</view>
 	</view>
@@ -43,7 +65,10 @@ export default {
 		return {
 			searchHot : [],
 			searchWord : '',
-			searchHistory : []
+			searchHistory : [],
+			searchType : 1,
+			searchList : [],
+			searchSuggest:[]
 		}
 	},
 	onLoad(){
@@ -63,6 +88,7 @@ export default {
 	methods: {
 		handleToWord(keyword){
 			this.searchWord = keyword
+			this.handleToSearch(keyword)
 		},
 		handleToSearch(keyword){
 			this.searchHistory.unshift(keyword)
@@ -74,12 +100,43 @@ export default {
 				key : 'searchHistory',
 				data : this.searchHistory
 			})
+			this.getSearchList(keyword)
 		},
 		handleToClear(){
 			uni.removeStorage({
 				key: 'searchHistory',
 				success:res =>{
 					this.searchHistory =  []
+				}
+			})
+		},
+		getSearchList(keyword){
+			searchWord(keyword).then(res =>{
+				if(res[1].data.code == 200){
+					this.searchList =  res[1].data.result.songs
+					this.searchType = 2
+				}
+			})
+		},
+		handleToClose(){
+			this.searchType = 1
+			this.searchWord = ''
+		},
+		handleToDetail(id){
+			uni,uni.navigateTo({
+				url: '/pages/detail/detail?id='+id,
+			})
+		},
+		handleToSuggest(e){
+			let val = e.detail.value
+			if(!val){
+				this.searchType = 1
+				return;
+			}
+			searchSuggest(val).then(res =>{
+				if(res[1].data.code == 200){
+					this.searchSuggest= res[1.].data.result.allMatch
+					this.searchType = 3
 				}
 			})
 		}
@@ -97,7 +154,7 @@ export default {
 	border-radius: 50rpx;
 }
 .search-search text {
-	font-size: 50rpx;
+	font-size: 40rpx;
 	margin-left: 20rpx;
 	margin-right: 10rpx;
 	color: #aaa;
@@ -147,7 +204,7 @@ export default {
 	.search-hot-item {
 		display: flex;
 		align-items: center;
-		margin-bottom: 58rpx;
+		margin-bottom: 28rpx;
 	}
 	.search-hot-top {
 		color: #fb2222;
@@ -156,7 +213,7 @@ export default {
 		}
 	.search-hot-word {flex: 1;}
 	.search-hot-word view:nth-child(1) {
-		font-size: 30rpx;
+		font-size: 25rpx;
 		color: black;
 	}
 	.search-hot-word view:nth-child(2) {
@@ -170,6 +227,54 @@ export default {
 	}
 	.search-hot-count {color: #878787;}
 
+ .search-result{
+	 border-top: 2rpx solid #e4e4e4;
+	 padding: 30rpx;
+ }
+ .search-result-item{
+	 display: flex;
+	 justify-content: space-between;
+	 align-items: center;
+	 padding-bottom: 10rpx;
+	 padding-top: 10rpx;
+	 border-bottom: 2rpx solid #e4e4e4;
+	 }
+ .search-result-word{}
+ .search-result-word view:nth-child(1){
+	 font-size: 24rpx;
+	 color: #235790;
+	 margin-bottom: 5rpx;
+ }
+ .search-result-word view:nth-child(2){
+	 font-size: 22rpx;
+	 color: #898989;
+	 }
+ .search-result-item text{
+	 font-size: 50rpx;
+ }
+
+	.search-suggest{
+		border-top: 2rpx #e4e4e4 solid;
+		padding: 30rpx;
+	}
+	.search-suggest-head{
+		color: #4574a5;
+		margin-bottom: 44rpx;
+	}
+	.search-suggest-item{
+		color: #5d5d5d;
+		margin-bottom: 24rpx;
+	}
+	.search-suggest-item text{
+		color: #bdbdbd;
+		margin-right: 28rpx;
+		position: relative;
+		top: 2rpx;
+		/* font-size: 30rpx; */
+	}
+ .icon-search1{
+	 font-size: 35rpx;
+ }
 
 
 .top {
