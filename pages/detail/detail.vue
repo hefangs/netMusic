@@ -2,23 +2,23 @@
 	<view class="detil">
 		<view class="fixbg" :style="{'background-image':`url(${songDetail.al.picUrl})`}"></view>
 		<musichead :title="songDetail.name" :icon="true" class="top" color="white"></musichead>
-		<view class="container">
+		<view class="container" v-show="!isLoading">
 			<scroll-view scroll-y="true">
-				<view class="detail-play">
-					<image :src="songDetail.al.picUrl" mode=""></image>
-					<text class="iconfont icon-zanting"></text>
+				<view class="detail-play" @tap="handleToPlay">
+					<image :src="songDetail.al.picUrl" mode="" :class="{'.detail-play-run':isPlayRotate}"></image>
+					<text class="iconfont" :class="iconPlay"></text>
 					<view></view>
 				</view>
 				<view class="detil-lyric">
-					<view class="detil-lyric-wrap">
-						<view class="detil-lyric-item"></view>
-						<view class="detil-lyric-item active">测试文字测试文字文字</view>
-						<view class="detil-lyric-item">测试文字测试文字文字</view>
+					<view class="detil-lyric-wrap" :style="{transform:'translateY(' + -(lyricIndex-1) * 82 + 'rpx)'}" >
+					<!-- 	<view class="detil-lyric-item"></view> -->
+						<view class="detil-lyric-item" v-for="(item,index) in songLyric" :key="index" :class="{active:lyricIndex==index}">{{item.lyric}}</view>
+						<!-- <view class="detil-lyric-item">{{}}</view> -->
 					</view>
 				</view>
 				<view class="detail-like">
 					<view class="detail-like-head">喜欢这首歌的人也听</view>
-					<view class="detail-like-item" v-for="(item,index) in songSimi" :key="index">
+					<view @tap="handleToSimi(item.id)" class="detail-like-item" v-for="(item,index) in songSimi" :key="index">
 						<view class="detail-like-img">
 							<image :src="item.album.picUrl" mode=""></image>
 						</view>
@@ -35,21 +35,21 @@
 				</view>
 				<view class="detail-comment">
 					<view class="detail-comment-head">精彩评论</view>
-					<view class="detail-comment-item">
+					<view class="detail-comment-item" v-for="(item,index) in songComment" :key="index">
 						<view class="detail-comment-img">
-							<image src="../../static/WX20220821-182146.png" mode=""></image>
+							<image :src="item.user.avatarUrl" mode=""></image>
 						</view>
 						<view class="detail-comment-content">
 							<view class="detail-comment-title">
 								<view class="detail-comment-name">
-									<view>xxxx</view>
-									<view>xxxxxx</view>
+									<view>{{item.user.nickname}}</view>
+									<view>{{item.time | formatTime}}</view>
 								</view>
-								<view class="detail-comment-like">11111
+								<view class="detail-comment-like">{{item.likedCount | formatCount}}
 									<text class="iconfont icon-dianzan"></text>
 								</view>
 							</view>
-							<view class="detail-comment-text">xxxx111111111111111111111111xxxxx</view>
+							<view class="detail-comment-text">{{item.content}}</view>
 						</view>
 					</view>
 				</view>
@@ -66,47 +66,156 @@
 		data() {
 			return {
 				songDetail:{
-					al:{}
+					al:{
+						picUrl:''
+					}
 				},
-				songSimi:[
-				
-				]
+				songSimi:[],
+				songComment:[],
+				songLyric:[], 
+				lyricIndex : 0,
+				iconPlay: 'icon-zanting', 
+				isPlayRotate: true,
+				isLoading:true
 			}
 		},
 		onLoad(options){
 			this.getMusic(options.id)
+		},
+		onUnload(){
+			this.cancelLyricIndex()
+			// #ifdef H5
+				this.bgAudioManager.destroy()
+			// #endif
+		},
+		onHide(){
+			this.cancelLyricIndex()
+			// #ifdef H5
+				this.bgAudioManager.destroy()
+			// #endif
 		},
 		components: {
 			musichead
 		},
 		methods: {
 			getMusic(id){
-				Promise.all([songDetail(id),songSimi(id)]).then((res) =>{
+				this.$store.commit('NEXT_ID',id)
+				
+				uni.showLoading({
+					title:'加载中...'
+				})
+				this.isLoading = true
+				Promise.all([songDetail(id),songSimi(id),songComment(id),songLyric(id),songUrl(id)]).then((res) =>{
 					// console.log(res[0][1].data.songs)
 					if(res[0][1].data.code == 200){
 						this.songDetail = res[0][1].data.songs[0]
 					}
 					if(res[1][1].data.code == 200){
-						console.log(res[1][1].data)
+						// console.log(res[1][1].data)
 						this.songSimi = res[1][1].data.songs
 					}
+					if(res[2][1].data.code == 200){
+						this.songComment = res[2][1].data.hotComments
+					}
+					if(res[3][1].data.code == 200){
+						let lyric = res[3][1].data.lrc.lyric
+						let re = /\[([^\]]+)\]([^\[]+)/g
+						let result  = []
+						lyric.replace(re,($0,$1,$2)=>{
+							result.push({"time":this.formatTimeToSec($1),"lyric":$2})
+							this.songLyric = result
+						})
+					}
+					if(res[4][1].data.code == 200){
+						// #ifdef MP-WEIXIN
+						this.bgAudioManager = uni.getBackgroundAudioManager()
+						this.bgAudioManager.title = this.songDetail.name
+						// #endif
+					
+						// #ifdef H5
+						if(!this.bgAudioManager){
+							this.bgAudioManager = uni.createInnerAudioContext()
+						}
+						this.iconPlay = 'icon-iconfontplay2'
+						this.isPlayRotate = false
+						// #endif
+			
+						this.bgAudioManager.src = res[4][1].data.data[0].url || ''
+						this.listenLyricIndex()
+						
+						this.bgAudioManager.onPlay(()=>{
+							this.iconPlay = 'icon-zanting'
+							this.isPlayRotate = true
+							this.listenLyricIndex()
+						})
+						this.bgAudioManager.onPause(()=>{
+							this.iconPlay = 'icon-iconfontplay2'
+							this.isPlayRotate = false
+							this.cancelLyricIndex()
+						})
+						this.bgAudioManager.onEnded(() =>{
+							this.getMusic(this.$store.state.nextId)
+							// this.getMusic.autoplay = true
+						})
+					}
+					this.isLoading = false
+					uni.hideLoading()
 				})
+			},
+			formatTimeToSec(val){
+				const arr = val.split(':')
+				return (Number(arr[0]*60)+Number(arr[1])).toFixed(1)
+			},
+			handleToPlay(){
+				if(this.bgAudioManager.paused){
+					this.bgAudioManager.play()
+				}else{
+					this.bgAudioManager.pause()
+					this.cancelLyricIndex()
+				}
+			},
+			handleToSimi(id){
+				this.getMusic(id)
+			},
+			listenLyricIndex(){
+				clearInterval(this.timer)
+				this.timer = setInterval(()=>{
+					for(var i = 0; i < this.songLyric.length; i++){
+						if(this.bgAudioManager.currentTime > this.songLyric[this.songLyric.length.time]){
+							this.lyricIndex = this.songLyric.length -1
+							break;
+						}
+						if(this.bgAudioManager.currentTime >this.songLyric[i].time  && this.bgAudioManager.currentTime < this.songLyric[i+1].time){
+							this.lyricIndex  = i
+						}
+					}
+				},500)
+			},
+			cancelLyricIndex(){
+				clearInterval(this.timer)
 			}
 		}
 	}
 </script>
 
 <style lang="scss" scoped>
+	
+	@keyframes move {
+		from{transform: rotate(0deg);}
+		to{transform: rotate(360deg);}
+	}
 	.detail-play {
-		
 		width: 580rpx;
 		height: 580rpx;
 		background: url('~@/static/WX20220821-182146.png');
 		background-size: cover;
 		margin: 214rpx auto 0 auto;
 		position: relative;
+		border-radius: 50%;
+		.detail-play-run {
+			animation-play-state: running;
+		}
 		image{
-			
 			width: 377rpx;
 			height: 377rpx;
 			border-radius: 50%;
@@ -116,6 +225,8 @@
 			bottom: 0;
 			top: 0;
 			margin: auto;
+			animation: 10s linear move infinite;
+			animation-play-state: paused;
 		}
 		text{
 			width: 100rpx;
@@ -129,17 +240,17 @@
 			top: 0;
 			margin: auto;
 		}
-		view{
-			width: 230rpx;
-			height: 360rpx;
-			background: url('@/static/logo.png');
-			position: absolute;
-			left: 80rpx;
-			right: 0;
-			top: -200rpx;
-			margin: auto;
-			background-size: cover;
-		}
+		// view{
+		// 	width: 230rpx;
+		// 	height: 360rpx;
+		// 	background: url('@/static/logo.png');
+		// 	position: absolute;
+		// 	left: 80rpx;
+		// 	right: 0;
+		// 	top: -200rpx;
+		// 	margin: auto;
+		// 	background-size: cover;
+		// }
 	}
 	.detil-lyric{
 		font-size: 32rpx;
@@ -148,7 +259,9 @@
 		text-align: center;
 		overflow: hidden;
 		color: #6f6e73;
-		.detil-lyric-wrap{}
+		.detil-lyric-wrap{
+			transition: .5s;
+		}
 		.detil-lyric-item{
 			height: 82rpx;
 		}
@@ -239,7 +352,7 @@
 		.detail-comment-text{
 			font-size: 28rpx;
 			line-height: 40rpx;
-			color: black;
+			color: white;
 			margin-top: 20rpx;
 			border-bottom: 1px #e0e0e0 solid;
 			padding-bottom: 40rpx;
