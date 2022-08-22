@@ -24,12 +24,9 @@
 		/* background-image: url('@/static/netlog.webp'); */
 		background-size: cover;
 		background-position:100% 100%;
-		filter: blur(20rpx);
+		filter: blur(10rpx);
 		transform:scale(1.2) ;
 		
 	}
-	.top {
-		margin-top: 30rpx;
-		font-size: 35rpx;
-	}
+
 </style>

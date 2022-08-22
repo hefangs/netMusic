@@ -75,9 +75,10 @@ export default {
 		})
 		// console.log(options.listId)
 		list(options.listId).then((res)=>{
-			if(res[1].data.code ==200){
+			if(res[1].data.code == 200){ 
 				this.playList = res[1].data.playlist
 				this.privileges = res[1].data.privileges
+				this.$store.commit('INIT_TOPLISTIDS',res[1].data.playlist.trackIds)
 				this.isLoading = false
 				uni.hideLoading()
 			}

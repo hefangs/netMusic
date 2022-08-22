@@ -3,7 +3,7 @@
 		<musichead title="小何云音乐" :icon="false" class="top" color="black"></musichead>
 		<view class="container">
 			<scroll-view scroll-y="true">
-				<view class="index-search">
+				<view class="index-search" @tap="handleToSearch">
 					<text class="iconfont icon-search1"></text>
 					<input type="text" placeholder="搜索歌曲" />
 				</view>
@@ -47,6 +47,11 @@ export default {
 			// console.log(listId)
 			uni.navigateTo({
 				url: '/pages/list/list?listId=' + listId
+			})
+		},
+		handleToSearch(){
+			uni.navigateTo({
+				url: '/pages/search/search'
 			})
 		}
 	}
@@ -115,4 +120,8 @@ export default {
 		}
 	}
 }
+	.top {
+		margin-top: 60rpx;
+		font-size: 35rpx;
+	}
 </style>
